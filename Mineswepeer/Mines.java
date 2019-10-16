@@ -1,10 +1,10 @@
-package Mineswepeer;
+package Minesweeper;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 
-public class Mines extends Application
+public class Minesweeper extends Application
 {
 	public void start(Stage primaryStage)
 	{
