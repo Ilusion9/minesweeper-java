@@ -11,11 +11,14 @@ public class Tile extends Button
 
 	public Tile(int x, int y)
 	{
+		// The position of this tile in Board.Field[][]
 		posX = x;
 		posY = y;
 		
 		isMine = false;
 		isQuestioned = false;
+		
+		// How many mines this tile has as neighbors
 		value = 0;
 		
 		setMaxSize(30, 30);
