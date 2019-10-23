@@ -1,4 +1,4 @@
-package Minesweeper;
+package Mineswepeer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +44,7 @@ public class Board
 	
 	public Board(Stage primaryStage)
 	{		
-		// Layout
+		/* Draw the layout */
 		BorderPane container = new BorderPane();
 		Scene scene = new Scene(container);
 		
@@ -54,8 +54,8 @@ public class Board
 		
 		VBox layout = new VBox();
 		layout.alignmentProperty().set(Pos.CENTER);
-		// Menu
 		
+		/* Draw the menu */
 		MenuBar menuBar = new MenuBar();
 		Menu newGame = new Menu("New");
 		Menu gameDiff = new Menu("Difficulty");
@@ -74,67 +74,76 @@ public class Board
 		menuBar.getMenus().add(newGame);
 		menuBar.getMenus().add(gameDiff);
 
-		// Game table
+		/* The grid that contains all tiles */
 		GridPane grid = new GridPane();
 		
-		// Add items to layout
+		/* Add the menu and the grid to the layout */
 		layout.getChildren().add(menuBar);
-		//layout.getChildren().add(headerButton);
 		layout.getChildren().add(grid);
 		container.setTop(layout);
 
-		// Init game
-		InitGame(grid);
+		/* Start the game */
+		startGame(grid);
 
 		primaryStage.show();
 		primaryStage.sizeToScene();
 		primaryStage.centerOnScreen();
 		
+		/* Start a new game on pressing New Game button */
 		itemNew.setOnAction(e ->
 		{	
-		    InitGame(grid);
+			startGame(grid);
 		});
 		
+		/* Start a new game on easy difficulty */
 		gameEasy.setOnAction(e ->
 		{			
 		    NUM_ROWS = 9;
 		    NUM_COLS = 9;
 		    NUM_MINES = 10;
 
-		    InitGame(grid);
+		    startGame(grid);
 		    primaryStage.sizeToScene();
 		    primaryStage.centerOnScreen();
 		});
 		
+		/* Start a new game on medium difficulty */
 		gameMedium.setOnAction(e ->
 		{			
 		    NUM_ROWS = 16;
 		    NUM_COLS = 16;
 		    NUM_MINES = 40;
 		    
-		    InitGame(grid);
+		    startGame(grid);
 		    primaryStage.sizeToScene();
 		    primaryStage.centerOnScreen();
 		});
 		
+		/* Start a new game on hard difficulty */
 		gameHard.setOnAction(e ->
 		{			
 		    NUM_ROWS = 16;
 		    NUM_COLS = 30;
 		    NUM_MINES = 99;
 		    
-		    InitGame(grid);
+		    startGame(grid);
 		    primaryStage.sizeToScene();
 		    primaryStage.centerOnScreen();
 		});
 	}
 	
-	private void InitGame(GridPane grid)
+	/* Draw the tiles, set our mines and make the rules */
+	private void startGame(GridPane grid)
 	{
+		/* The unix time when this game has started */
 		startTime = Instant.now();
+		
 		GameOver = false;
 
+		/* Clear the parent object of our tiles */
 		grid.getChildren().clear();
+		
+		/* Create the Field 2d array */
    	 	Field = new Tile[NUM_ROWS][NUM_COLS];
    	 	
 		for (int i = 0; i < NUM_ROWS; i++)
@@ -149,55 +158,67 @@ public class Board
 				     @Override
 				     public void handle(MouseEvent event)
 				     {
+				    	 /* If the game is over or the tile was released, the player cannot press this tile */
 				    	 if (GameOver || tile.isReleased())
 				    	 {
 				    		 return;
 				    	 }
 				    	 
+				    	 /* On left click pressed */
 				    	 if (event.getButton() == MouseButton.PRIMARY)
 				    	 {
+				    		 /* If the tile is marked as '?', the player must unmark it before releasing */
 				    		 if (tile.isQuestioned())
 				    		 {
 				    			 return;
 				    		 }
 				    		 
+				    		 /* Check if the player released a mine */
 				    		 if (tile.isMine())
 				    		 {
 				    			 tile.releaseMine();
 				    			 
-				    			 GameLost();
+				    			 setGameLost();
 				    			 return;
 				    		 }
 				    		 
+				    		 /* Find all neighbors of this tile with value 0 - has no mine as neighbor and release them */
 				    		 if (tile.getValue() == 0)
 				    		 {
-				    			 FindEmptyTiles(tile.getX(), tile.getY());
+				    			 findEmptyTiles(tile.getX(), tile.getY());
 				    		 }
 				    		 
+				    		 /* Release this tile */
 				    		 tile.release();
 				    		 
-				    		 if (CountRemainingTiles() < 1)
+				    		 /* Check if the player won the game */
+				    		 if (countRemainingTiles() < 1)
 				    		 {
-				    			 GameWon();
+				    			 setGameWon();
 				    		 }
 				    	 }
 				    	 
+				    	 /* On right click pressed */
 				    	 else if (event.getButton() == MouseButton.SECONDARY)
 				    	 {
+				    		 /* Mark this tile as '?' */
 				    		 tile.setQuestioned();
 				    	 }
 				     }
 				});
 				
+				/* Put this tile in the Field 2d array - we need this array when we find empty tiles */
 				Field[i][j] = tile;
 			}
 		}
 		
-		SetMines();
+		/* Set our mines */
+		setBoardMines();
 	}
 	
-	private void SetMines()
+	private void setBoardMines()
 	{
+		/* Put all tiles into an arraylist */
 		List<Tile> list = new ArrayList<Tile>();
 		
 		for (int i = 0; i < NUM_ROWS; i++)
@@ -208,19 +229,23 @@ public class Board
 			}
 		}
 		
+		/* Shuffle the list */
 		Collections.shuffle(list);
 		
+		/* Get first NUM_MINES value from the list */
 		for (int i = 0; i < NUM_MINES; i++)
 		{
 			Tile buffer = list.get(i);
 			buffer.setMine();
-			RefreshField(buffer.getX(), buffer.getY());
+			
+			/* Set a new value for the neighbors of this mine - we increase their value with 1 */
+			setValueOfMineNeighbors(buffer.getX(), buffer.getY());
 		}
 		
 		list = null;
 	}
 	
-	private int CountRemainingTiles()
+	private int countRemainingTiles()
 	{
 		int num = NUM_ROWS * NUM_COLS;
 		
@@ -231,10 +256,9 @@ public class Board
 				if (Field[i][j].isMine())
 				{
 					num--;
-					continue;
 				}
 				
-				if (Field[i][j].isReleased())
+				else if (Field[i][j].isReleased())
 				{
 					num--;
 				}
@@ -244,10 +268,12 @@ public class Board
 		return num;
 	}
 	
-	private void GameLost()
+	/* Set the game as lost */
+	private void setGameLost()
 	{
 		GameOver = true;
 
+		/* Release the other mines */
 		for (int i = 0; i < NUM_ROWS; i++)
 		{
 			for (int j = 0; j < NUM_COLS; j++)
@@ -269,7 +295,8 @@ public class Board
 		alertBox.show();
 	}
 	
-	private void GameWon()
+	/* Set the game as won */
+	private void setGameWon()
 	{
 		GameOver = true;
 		
@@ -278,58 +305,65 @@ public class Board
 		alertBox.show();
 	}
 	
-	private void RefreshField(int x, int y)
+	/* Set a new value for the neighbors of the mine with pos (x, y) in Field 2d array */
+	private void setValueOfMineNeighbors(int x, int y)
 	{
-		 int Neighbors[] = {-1, 0, 0, -1, -1, -1, -1, 1, 1, -1, 1, 0, 0, 1, 1, 1};
+		 int neighbors[] = {-1, 0, 0, -1, -1, -1, -1, 1, 1, -1, 1, 0, 0, 1, 1, 1};
 		
-		 for (int i = 0; i < Neighbors.length; i += 2)
+		 for (int i = 0; i < neighbors.length; i += 2)
 		 {
-			 int newx = x + Neighbors[i];
-			 int newy = y + Neighbors[i + 1];
+			 int newx = x + neighbors[i];
+			 int newy = y + neighbors[i + 1];
 
 			 if (newx < 0 || newy < 0 || newx >= NUM_ROWS || newy >= NUM_COLS) // Wrong indexes
 			 {
 				 continue;
 			 }
-			
+			 
+			 /* This tile is a mine - skip it */
 			 if (Field[newx][newy].isMine())
 			 {
 				 continue;
 			 }
 			 
+			 /* We increase the neighbor value with 1 */
 			 Field[newx][newy].setValue(Field[newx][newy].getValue() + 1);
 		 }
 	}
 	
-	private void FindEmptyTiles(int x, int y)
+	private void findEmptyTiles(int x, int y)
 	{
-		 int Neighbors[] = {-1, 0, 0, -1, -1, -1, -1, 1, 1, -1, 1, 0, 0, 1, 1, 1};
+		 int neighbors[] = {-1, 0, 0, -1, -1, -1, -1, 1, 1, -1, 1, 0, 0, 1, 1, 1};
 		
-		 for (int i = 0; i < Neighbors.length; i += 2)
+		 for (int i = 0; i < neighbors.length; i += 2)
 		 {
-			 int newx = x + Neighbors[i];
-			 int newy = y + Neighbors[i + 1];
+			 int newx = x + neighbors[i];
+			 int newy = y + neighbors[i + 1];
 
 			 if (newx < 0 || newy < 0 || newx == NUM_ROWS || newy == NUM_COLS) // Wrong indexes
 			 {
 				 continue;
 			 }
 
+			 /* Tile already released */
 			 if (Field[newx][newy].isReleased())
 			 {
 				 continue;
 			 }
 			 
+			 /* Tile marked as '?' */
 			 if (Field[newx][newy].isQuestioned())
 			 {
 				 Field[newx][newy].setQuestioned();
 			 }
 			 
+			 /* Release this tile */
 			 Field[newx][newy].release();
 			 
+			 /* This tile is empty, release its neighbors */
 			 if (Field[newx][newy].getValue() == 0)
 			 {
-				 FindEmptyTiles(newx, newy);
+				 findEmptyTiles(newx, newy);
 			 }
 		 }
 	}
