@@ -1,4 +1,4 @@
-package Minesweeper;
+package Mineswepeer;
 
 import javafx.scene.control.Button;
 import javafx.scene.paint.Color;
@@ -9,16 +9,14 @@ public class Tile extends Button
 	private int value;
 	private final int posX, posY;
 
+	/* Tile constructor */
 	public Tile(int x, int y)
 	{
-		// The position of this tile in Board.Field[][]
 		posX = x;
 		posY = y;
 		
 		isMine = false;
 		isQuestioned = false;
-		
-		// How many mines this tile has as neighbors
 		value = 0;
 		
 		setMaxSize(30, 30);
@@ -27,36 +25,43 @@ public class Tile extends Button
 		setStyle("-fx-font-weight: bold;");
 	}
 	
+	/* Get row position from Board.Field 2d array */
 	public int getX()
 	{
 		return posX;
 	}
 	
+	/* Get column position from Board.Field 2d array */
 	public int getY()
 	{
 		return posY;
 	}
 	
+	/* Set how many neighbors of this are mines */
 	public void setValue(int buffer)
 	{
 		value = buffer;
 	}
 	
+	/* Get how many neighbors of this tile are mines */
 	public int getValue()
 	{
 		return value;
 	}
 	
+	/* Set this tile as a mine */
 	public void setMine()
 	{
 		isMine = true;
 	}
 	
+	/* Check if this tile is a mine */
 	public boolean isMine()
 	{
 		return isMine;
 	}
 	
+	/* Release this tile if its not a mine */
 	public void release()
 	{
 		setDisabled(true);
@@ -68,16 +73,21 @@ public class Tile extends Button
 		}
 	}
 	
+	/* Release this tile if its a mine */
+	public void releaseMine()
+	{
+		setDisabled(true);
+		setText("X");
+		setTextFill(Color.RED);
+	}
+	
+	/* Check if this tile was released */
 	public boolean isReleased()
 	{
 		return isDisabled();
 	}
 	
-	public boolean isQuestioned()
-	{
-		return isQuestioned;
-	}
-	
+	/* Mark this tile as '?' or unmark it if its already marked */
 	public void setQuestioned()
 	{
 		if (isQuestioned)
@@ -93,10 +103,9 @@ public class Tile extends Button
 		}
 	}
 	
-	public void releaseMine()
+	/* Check if this tile was marked as '?' */
+	public boolean isQuestioned()
 	{
-		setDisabled(true);
-		setText("X");
-		setTextFill(Color.RED);
+		return isQuestioned;
 	}
 }
