@@ -1,2 +1,2 @@
-# java-simple-minesweeper
-Simple Minesweeper in Java
+# Description
+Simple Minesweeper in Java using javafx
