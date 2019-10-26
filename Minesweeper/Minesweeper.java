@@ -6,7 +6,7 @@ import javafx.stage.Stage;
 
 public class Minesweeper extends Application
 {
-	/* Draw the board and make the rules when the application is launched */
+	/* Draw the board and display it */
 	public void start(Stage primaryStage)
 	{
 		new Board(primaryStage);
