@@ -2,9 +2,7 @@ package Mineswepeer;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -22,16 +20,16 @@ import java.time.Instant;
 
 public class Board
 {
-	private int NUM_ROWS = 9;
-	private int NUM_COLS = 9;
-	private int NUM_MINES = 10;
+	private int numRows = 9;
+	private int numCols = 9;
+	private int numMines = 10;
 	
-	private boolean GameOver;
+	private boolean isGameOver;
 	private Tile[][] Field;
 	private Alert alertBox = new Alert(AlertType.INFORMATION);
 	private Instant startTime;
 		
-	public static Color TileColors[] = {
+	public static final Color tileColors[] = {
 			Color.BLUE,
 			Color.GREEN,
 			Color.RED,
@@ -45,15 +43,14 @@ public class Board
 	public Board(Stage primaryStage)
 	{		
 		/* Draw the layout */
-		BorderPane container = new BorderPane();
-		Scene scene = new Scene(container);
+		BorderPane boardContainer = new BorderPane();
+		Scene scene = new Scene(boardContainer);
 		
 		primaryStage.setScene(scene);
 		primaryStage.setTitle("Minesweeper");
 		primaryStage.resizableProperty().setValue(false);
 		
-		VBox layout = new VBox();
-		layout.alignmentProperty().set(Pos.CENTER);
+		VBox verticalBox = new VBox();
 		
 		/* Draw the menu */
 		MenuBar menuBar = new MenuBar();
@@ -78,9 +75,9 @@ public class Board
 		GridPane grid = new GridPane();
 		
 		/* Add the menu and the grid to the layout */
-		layout.getChildren().add(menuBar);
-		layout.getChildren().add(grid);
-		container.setTop(layout);
+		verticalBox.getChildren().add(menuBar);
+		verticalBox.getChildren().add(grid);
+		boardContainer.setTop(verticalBox);
 
 		/* Start the game */
 		startGame(grid);
@@ -95,36 +92,36 @@ public class Board
 			startGame(grid);
 		});
 		
-		/* Start a new game on easy difficulty */
+		/* Start a new game on easy difficulty on pressing Easy button */
 		gameEasy.setOnAction(e ->
 		{			
-		    NUM_ROWS = 9;
-		    NUM_COLS = 9;
-		    NUM_MINES = 10;
+		    numRows = 9;
+		    numCols = 9;
+		    numMines = 10;
 
 		    startGame(grid);
 		    primaryStage.sizeToScene();
 		    primaryStage.centerOnScreen();
 		});
 		
-		/* Start a new game on medium difficulty */
+		/* Start a new game on medium difficulty on pressing Medium button */
 		gameMedium.setOnAction(e ->
 		{			
-		    NUM_ROWS = 16;
-		    NUM_COLS = 16;
-		    NUM_MINES = 40;
+		    numRows = 16;
+		    numCols = 16;
+		    numMines = 40;
 		    
 		    startGame(grid);
 		    primaryStage.sizeToScene();
 		    primaryStage.centerOnScreen();
 		});
 		
-		/* Start a new game on hard difficulty */
+		/* Start a new game on hard difficulty on pressing Hard button */
 		gameHard.setOnAction(e ->
 		{			
-		    NUM_ROWS = 16;
-		    NUM_COLS = 30;
-		    NUM_MINES = 99;
+		    numRows = 16;
+		    numCols = 30;
+		    numMines = 99;
 		    
 		    startGame(grid);
 		    primaryStage.sizeToScene();
@@ -138,17 +135,17 @@ public class Board
 		/* The unix time when this game has started */
 		startTime = Instant.now();
 		
-		GameOver = false;
+		isGameOver = false;
 
 		/* Clear the parent object of our tiles */
 		grid.getChildren().clear();
 		
 		/* Create the Field 2d array */
-   	 	Field = new Tile[NUM_ROWS][NUM_COLS];
+   	 	Field = new Tile[numRows][numCols];
    	 	
-		for (int i = 0; i < NUM_ROWS; i++)
+		for (int i = 0; i < numRows; i++)
 		{
-			for (int j = 0; j < NUM_COLS; j++)
+			for (int j = 0; j < numCols; j++)
 			{
 				Tile tile = new Tile(i, j);
 				grid.add(tile, j, i);
@@ -159,7 +156,7 @@ public class Board
 				     public void handle(MouseEvent event)
 				     {
 				    	 /* If the game is over or the tile was released, the player cannot press this tile */
-				    	 if (GameOver || tile.isReleased())
+				    	 if (isGameOver || tile.isReleased())
 				    	 {
 				    		 return;
 				    	 }
@@ -219,39 +216,39 @@ public class Board
 	private void setBoardMines()
 	{
 		/* Put all tiles into an arraylist */
-		List<Tile> list = new ArrayList<Tile>();
+		ArrayList<Tile> tileList = new ArrayList<Tile>();
 		
-		for (int i = 0; i < NUM_ROWS; i++)
+		for (int i = 0; i < numRows; i++)
 		{
-			for (int j = 0; j < NUM_COLS; j++)
+			for (int j = 0; j < numCols; j++)
 			{
-				list.add(Field[i][j]);
+				tileList.add(Field[i][j]);
 			}
 		}
 		
 		/* Shuffle the list */
-		Collections.shuffle(list);
+		Collections.shuffle(tileList);
 		
-		/* Get first NUM_MINES value from the list */
-		for (int i = 0; i < NUM_MINES; i++)
+		/* Get first numMines value from the list */
+		for (int i = 0; i < numMines; i++)
 		{
-			Tile buffer = list.get(i);
-			buffer.setMine();
+			Tile tile = tileList.get(i);
+			tile.setMine();
 			
 			/* Set a new value for the neighbors of this mine - we increase their value with 1 */
-			setValueOfMineNeighbors(buffer.getX(), buffer.getY());
+			setValueOfMineNeighbors(tile.getX(), tile.getY());
 		}
 		
-		list = null;
+		tileList = null;
 	}
 	
 	private int countRemainingTiles()
 	{
-		int num = NUM_ROWS * NUM_COLS;
+		int num = numRows * numCols;
 		
-		for (int i = 0; i < NUM_ROWS; i++)
+		for (int i = 0; i < numRows; i++)
 		{
-			for (int j = 0; j < NUM_COLS; j++)
+			for (int j = 0; j < numCols; j++)
 			{
 				if (Field[i][j].isMine())
 				{
@@ -271,12 +268,12 @@ public class Board
 	/* Set the game as lost */
 	private void setGameLost()
 	{
-		GameOver = true;
+		isGameOver = true;
 
 		/* Release the other mines */
-		for (int i = 0; i < NUM_ROWS; i++)
+		for (int i = 0; i < numRows; i++)
 		{
-			for (int j = 0; j < NUM_COLS; j++)
+			for (int j = 0; j < numCols; j++)
 			{
 				if (Field[i][j].isReleased())
 				{
@@ -298,7 +295,7 @@ public class Board
 	/* Set the game as won */
 	private void setGameWon()
 	{
-		GameOver = true;
+		isGameOver = true;
 		
 		alertBox.setTitle("Game over");
 		alertBox.setHeaderText("Game won in " + (Instant.now().getEpochSecond() - startTime.getEpochSecond()) + " seconds!");
@@ -315,7 +312,7 @@ public class Board
 			 int newx = x + neighbors[i];
 			 int newy = y + neighbors[i + 1];
 
-			 if (newx < 0 || newy < 0 || newx >= NUM_ROWS || newy >= NUM_COLS) // Wrong indexes
+			 if (newx < 0 || newy < 0 || newx >= numRows || newy >= numCols) // Wrong indexes
 			 {
 				 continue;
 			 }
@@ -340,7 +337,7 @@ public class Board
 			 int newx = x + neighbors[i];
 			 int newy = y + neighbors[i + 1];
 
-			 if (newx < 0 || newy < 0 || newx == NUM_ROWS || newy == NUM_COLS) // Wrong indexes
+			 if (newx < 0 || newy < 0 || newx >= numRows || newy >= numCols) // Wrong indexes
 			 {
 				 continue;
 			 }
